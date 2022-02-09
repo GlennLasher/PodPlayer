@@ -411,6 +411,10 @@ class PodPlayer(object):
 
         #TODO:  Make the path where the downloaded file goes into a configurable.
 
+        #TODO:  Make the path to the fetcher configurable.
+
+        #TODO:  Make the path to the media player configurable.
+        
         #Design note: Yes, I could have given the URL to mplayer and
         #it would play.  The problem with doing this is that if you
         #put it on pause for a long time, the server may time out and
@@ -426,7 +430,7 @@ class PodPlayer(object):
         #content.  Can't think of a reason to go to the effort,
         #though, given that we're just going to write the content to a
         #file unchanged.
-        
+
         call(["/usr/bin/wget", "-O", "/dev/shm/podplayer.mp3", selection.episode_url])
         call(["/usr/bin/mplayer", "/dev/shm/podplayer.mp3"])
 
