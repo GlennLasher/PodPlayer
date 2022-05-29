@@ -116,9 +116,14 @@ class Podcast (object):
         """
 
         #TODO:  Make the timeout configurable.
-        with urllib.request.urlopen(self.podcast_url, None, 5) as infile:
-            return infile.read()
-        
+        try:
+            with urllib.request.urlopen(self.podcast_url, None, 5) as infile:
+                return infile.read()
+        except:
+            if self.verbose:
+                print ("    Download failed.  Trying next feed.")
+            return None
+            
         
     def get_episode_list(self):
         """Podcast.get_episode_list() parses the podcast XML and boils it
@@ -130,25 +135,33 @@ class Podcast (object):
         #generator to produce a feed in reverse-chronological order,
         #and that might not be a valid assumption.
         
-        #Retrieve the feed and parse it
-        tree = ET.fromstring(self.retrieve_feed_text())
+        #Retrieve the feed.
+        treetext = self.retrieve_feed_text()
 
-        #Get channel name
-        self.podcast_name = tree.findall('channel')[0].findall('title')[0].text
+        #Determine if we got anything
+        if treetext is None:
+            #It's empty.  Say so.
+            self.episode_list = []
+        else:
+            #Figure out what we got.
+            tree = ET.fromstring(treetext)
         
-        #Get the enclosures out of each and put them on a list.
-        self.episode_list = []
-        for channel in tree.findall('channel'):
-            for item in channel.findall('item'):
-                for enclosure in item.findall('enclosure'):
-                    given_url = enclosure.attrib['url']
-                    urlmatch = self.urlre.match(given_url)
-                    if urlmatch:
-                        episode_url = urlmatch.group(1)
-                    else:
-                        episode_url = given_url
-                    self.episode_list += [episode_url]
-
+            #Get channel name
+            self.podcast_name = tree.findall('channel')[0].findall('title')[0].text
+        
+            #Get the enclosures out of each and put them on a list.
+            self.episode_list = []
+            for channel in tree.findall('channel'):
+                for item in channel.findall('item'):
+                    for enclosure in item.findall('enclosure'):
+                        given_url = enclosure.attrib['url']
+                        urlmatch = self.urlre.match(given_url)
+                        if urlmatch:
+                            episode_url = urlmatch.group(1)
+                        else:
+                            episode_url = given_url
+                        self.episode_list += [episode_url]
+                            
 class Selection (object):
     """Class Selection is simply a data structure, nothing else.  It
     carries the URL of a selection, and the Podcast object that
@@ -431,7 +444,7 @@ class PodPlayer(object):
         #though, given that we're just going to write the content to a
         #file unchanged.
 
-        call(["/usr/bin/wget", "-O", "/dev/shm/podplayer.mp3", selection.episode_url])
+        call(["/usr/bin/wget", "--timeout=5", "-O", "/dev/shm/podplayer.mp3", selection.episode_url])
         call(["/usr/bin/mplayer", "/dev/shm/podplayer.mp3"])
 
     def update_last_played(self, selection):
