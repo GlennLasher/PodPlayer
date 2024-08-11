@@ -418,7 +418,7 @@ class PodPlayer(object):
     def launch_player(self, selection):
         """PodPlayer.launch_player() takes a Selection object.  It then calls
         external programs, first wget to retrieve the content, then
-        mplayer to play it.
+        mpv to play it.
 
         """
 
@@ -428,7 +428,7 @@ class PodPlayer(object):
 
         #TODO:  Make the path to the media player configurable.
         
-        #Design note: Yes, I could have given the URL to mplayer and
+        #Design note: Yes, I could have given the URL to mpv and
         #it would play.  The problem with doing this is that if you
         #put it on pause for a long time, the server may time out and
         #close the connection and it won't restart.  Also, some
@@ -445,7 +445,7 @@ class PodPlayer(object):
         #file unchanged.
 
         call(["/usr/bin/wget", "--timeout=5", "-O", "/dev/shm/podplayer.mp3", selection.episode_url])
-        call(["/usr/bin/mplayer", "/dev/shm/podplayer.mp3"])
+        call(["/usr/bin/mpv", "/dev/shm/podplayer.mp3"])
 
     def update_last_played(self, selection):
         """PodPlayer.update_last_played() takes a selection object and updates
