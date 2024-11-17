@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 
 import argparse
+import ssl
 import sqlite3
 import xml.etree.ElementTree as ET
-import urllib.request
+#import urllib.request #It stopped working, so I'm stopping using it.
 import re
 import time
 from subprocess import call
@@ -115,15 +116,26 @@ class Podcast (object):
 
         """
 
+        #Welp, urllib stopped working for one of my subscriptions.
+        #Fuck it.  We'll just use wget.
+        
         #TODO:  Make the timeout configurable.
+        #try:
+        #    context = ssl.create_default_context()
+        #    context.set_alpn_protocols(['spdy/3', 'spdy/2', 'spdy/1', 'http/1.1'])
+        #    
+        #    with urllib.request.urlopen(self.podcast_url, None, 5, context=context) as infile:
+        #        return infile.read()
+
         try:
-            with urllib.request.urlopen(self.podcast_url, None, 5) as infile:
+            call(["/usr/bin/wget", "--timeout=5", "-O", "/dev/shm/podplayer.xml", self.podcast_url])
+            with open("/dev/shm/podplayer.xml", 'r') as infile:
                 return infile.read()
         except:
             if self.verbose:
                 print ("    Download failed.  Trying next feed.")
-            return None
-            
+                return None
+        
         
     def get_episode_list(self):
         """Podcast.get_episode_list() parses the podcast XML and boils it
